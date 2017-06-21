@@ -10,7 +10,7 @@ var LifeEventSchema = new Schema({
   tags: String,
   photo: String,
   userRating: Number,
-  userId: String
+  uid: String
 
 });
 
