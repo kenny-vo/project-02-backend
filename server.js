@@ -24,17 +24,10 @@ app.use(express.static('public'));
 /************
  * DATABASE *
  ************/
- mongoose.connect(
-   process.env.MONGOLAB_URI ||
-   process.env.MONGOHQ_URL ||
-   'mongodb://localhost/timeline-api'
- );
-
 
 var db = require('./models');
 
-var LifeEvent = require('./models/lifeEvent');
-
+var LifeEvent = db.LifeEvent;
 /**********
  * ROUTES *
  **********/
@@ -73,16 +66,61 @@ function getSingularResponse (err, foundObject) {
   }
 }
 
+function sortByKey(array, key) {
+    return array.sort(function(a, b) {
+        var x = a[key]; var y = b[key];
+        return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+    });
+}
+
+// function publicEvents(taco) {
+//   if (db.LifeEvent.isPublic === true){
+//     return (taco)
+//
+//   }
+// }
+
+// function showPublic(arr) {
+//   for (var i=0 ; i< arr.length; i++) {
+//     if (arr[i].isPublic === true)
+//       return arr[i];
+//   }
+// }
+//
+// function mapArray(arr){
+//   var list = arr.map(function(x,i){
+//     if(x.isPublic === true)
+//     return i;
+//   })
+// }
+  // 
+  // function filterPublic(arr){
+  //   var public = arr.filter(function(LifeEvent) {
+  //     return arr.isPublic === true;
+  //   })
+  // }
+
 // show all lifeEvents
 app.get('/lifeEvents', function (req, res) {
-  db.LifeEvent.find({})
-    .exec(function(err, lifeEvents){
-      if (err) {
-        return console.log(err);
-      }
-      res.json(lifeEvents);
-    });
+  db.LifeEvent.find(function (err, allLifeEvents) {
+    err ? res.status(500).json({ error: err.message }) :
+    allLifeEvents = sortByKey(allLifeEvents, 'eventDate')
+    res.json({ lifeEvents: allLifeEvents });
+  });
 });
+
+// show public only
+app.get('/gallery', function (req, res) {
+  db.LifeEvent.find(function (err, allLifeEvents) {
+    err ? res.status(500).json({ error: err.message }) :
+    public = allLifeEvents.filter(function(lifeEvent) {
+      return lifeEvent.isPublic === true;
+    })
+      res.json({ lifeEvents: public });
+  });
+});
+
+
 
 // get life event by id
 app.get('/lifeEvents/:id', function (req, res) {
@@ -104,22 +142,11 @@ app.get('/lifeEvents/:id', function (req, res) {
 // });
 
 app.post('/lifeEvents', function (req, res) {
-  var newLifeEvent = new db.LifeEvent({
-      eventDate: req.body.eventDate,
-      postDate: req.body.postDate,
-      title: req.body.title,
-      isPublic: req.body.isPublic,
-      content: req.body.content,
-      tags: req.body.tags,
-      photo: req.body.photo,
-      userRating: req.body.userRating
-  });
-
+  var newLifeEvent = req.body;
   db.LifeEvent.create(newLifeEvent, function(err, succ) {
     if (err) {return console.log(err)}
     res.json(succ);
   });
-
 });
 
 
@@ -151,17 +178,18 @@ app.put('/lifeEvents/:id', function (req, res) {
 });
 
 // delete post
-app.delete('/posts/:id', function (req, res) {
+app.delete('/lifeevents/:id', function (req, res) {
   var lifeEventId = req.params.id;
-
-  LifeEvent.findOneAndRemove({ _id: lifeEventId }, getSingularResponse.bind(res));
+  db.LifeEvent.findOneAndRemove({_id: lifeEventId})
+    .exec(function (err, deleted) {
+    res.json(deleted);
+  });
 });
 
 /**********
  * SERVER *
  **********/
 
-// listen on the port that Heroku prescribes (process.env.PORT) OR port 3000
-app.listen(process.env.PORT || 3000, function () {
-  console.log('Server running on http://localhost:3000/');
-});
+var port = process.env.PORT || 3000;
+app.listen(port);
+console.log('Express started on port 3000');
