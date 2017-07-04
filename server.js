@@ -1,4 +1,3 @@
-// require express and other modules
 var express = require('express'),
     app = express(),
     mongoose = require('mongoose'),
@@ -6,13 +5,10 @@ var express = require('express'),
 
 app.use(cors());
 
-// parse incoming urlencoded form data
-// and populate the req.body object
+
 var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// allow cross origin requests (optional)
-// https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -73,33 +69,6 @@ function sortByKey(array, key) {
     });
 }
 
-// function publicEvents(taco) {
-//   if (db.LifeEvent.isPublic === true){
-//     return (taco)
-//
-//   }
-// }
-
-// function showPublic(arr) {
-//   for (var i=0 ; i< arr.length; i++) {
-//     if (arr[i].isPublic === true)
-//       return arr[i];
-//   }
-// }
-//
-// function mapArray(arr){
-//   var list = arr.map(function(x,i){
-//     if(x.isPublic === true)
-//     return i;
-//   })
-// }
-  // 
-  // function filterPublic(arr){
-  //   var public = arr.filter(function(LifeEvent) {
-  //     return arr.isPublic === true;
-  //   })
-  // }
-
 // show all lifeEvents
 app.get('/lifeEvents', function (req, res) {
   db.LifeEvent.find(function (err, allLifeEvents) {
@@ -120,27 +89,13 @@ app.get('/gallery', function (req, res) {
   });
 });
 
-
-
 // get life event by id
 app.get('/lifeEvents/:id', function (req, res) {
   var lifeEventId = req.params.id;
   LifeEvent.findOne({ _id: lifeEventId }, getSingularResponse.bind(res));
 });
 
-// create new life event
-// app.post('/todos', function (req, res) {
-//   var newPost = new Post(req.body);
-//
-//   newPost.save(function (err, savedPost) {
-//     if (err) {
-//       res.status(500).json({ error: err.message });
-//     } else {
-//       res.status(201).json(savedPost);
-//     }
-//   });
-// });
-
+// create lifeEvents
 app.post('/lifeEvents', function (req, res) {
   var newLifeEvent = req.body;
   db.LifeEvent.create(newLifeEvent, function(err, succ) {
@@ -148,7 +103,6 @@ app.post('/lifeEvents', function (req, res) {
     res.json(succ);
   });
 });
-
 
 // update a post event
 app.put('/lifeEvents/:id', function (req, res) {
